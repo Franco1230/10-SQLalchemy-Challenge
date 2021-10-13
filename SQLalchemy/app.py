@@ -8,6 +8,9 @@ from flask import Flask, jsonify
 # Database Setup
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
+# Create session
+session = Session(engine)
+
 # Reflect an existing database into a new model
 Base = automap_base()
 
