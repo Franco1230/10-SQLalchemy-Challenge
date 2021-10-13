@@ -18,9 +18,6 @@ Base.prepare(engine, reflect = True)
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-# Create session
-session = Session(engine)
-
 # Setup Flask
 app = Flask(__name__)
 
@@ -29,6 +26,9 @@ app = Flask(__name__)
 # List all routes that are available
 @app.route("/")
 def home():
+
+    # Create session
+    session = Session(engine)
     
     return (f"Available Routes:<br/>"
             f"/api/v1.0/precipitation<br/>"
@@ -36,6 +36,7 @@ def home():
             f"/api/v1.0/tobs<br/>"
             f"/api/v1.0/start<br/>"
             f"/api/v1.0/start/end<br/>")
+
 
 # Convert the query results to a dictionary using "date" as the key and "prcp" as the value.
 # Return the JSON representation of your dictionary. 
@@ -59,6 +60,7 @@ def precipitation():
 
     # Return the JSON representation of dictionary
     return jsonify(precipitation_list)
+
 
 # Return a JSON list of stations from the dataset
 @app.route("/api/v1.0/stations")
@@ -85,6 +87,7 @@ def stations():
 
     # Return the JSON representation of dictionary
     return jsonify(stations_list)
+
 
 # Query the dates and temperature observations of *the most active station for the last year* of data.
 # Return a JSON list of temperature observations (TOBS) for the previous year.
@@ -127,13 +130,11 @@ def tobs():
     # Return the JSON representation of dictionary
     return jsonify(tobs_list)
 
+
 # Return a JSON list of the minimum temperature, the average temperature, and the max temperature
 # for a given start or start-end range.
 
 # When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
-
-# When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates
-# between the start and end date inclusive.
 @app.route("/api/v1.0/<start>")
 def temp_start(start):
 
@@ -157,6 +158,9 @@ def temp_start(start):
 
     return jsonify(temp_list)
 
+
+# When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates
+# between the start and end date inclusive.
 @app.route("/api/v1.0/<start>/<end>")
 def temp_start_end(start = None, end = None):
     
