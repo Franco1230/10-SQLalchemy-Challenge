@@ -49,7 +49,8 @@ def precipitation():
     # Query for precipitation
     all_precipitation = sql_driver_session.query(Measurement.date, Measurement.prcp).\
                                                  order_by(Measurement.date).all()
-
+    
+    # Close session
     sql_driver_session.close()
 
     # Convert the query results to a dictionary
@@ -76,6 +77,7 @@ def stations():
                                             Station.latitude, Station.longitude,\
                                             Station.elevation).all()
     
+    # Close session
     sql_driver_session.close()
 
     # Convert the query results to a dictionary
@@ -122,6 +124,7 @@ def tobs():
                                                   filter(Measurement.station == the_most_active_station[0]).\
                                                   filter(Measurement.date >= one_year_ago).all()
     
+    # Close session
     sql_driver_session.close()
 
     # Convert the query results to a dictionary
@@ -153,6 +156,7 @@ def temp_start(start):
                                                func.max(Measurement.tobs)).\
                                                filter(Measurement.date >= start).all()
     
+    # Close session
     sql_driver_session.close()
 
     # Convert the query results to a dictionary
@@ -182,6 +186,7 @@ def temp_start_end(start = None, end = None):
                                                filter(Measurement.date >= start).\
                                                filter(Measurement.date <= end).all()
     
+    # Close session
     sql_driver_session.close()
 
     # Convert the query results to a dictionary
