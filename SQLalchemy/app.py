@@ -9,7 +9,7 @@ from flask import Flask, jsonify
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # Create session
-session = Session(engine)
+sql_driver_session = Session(engine)
 
 # Reflect an existing database into a new model
 Base = automap_base()
@@ -29,9 +29,6 @@ app = Flask(__name__)
 # List all routes that are available
 @app.route("/")
 def home():
-
-    # Create session
-    session = Session(engine)
     
     return (f"Available Routes:<br/>"
             f"/api/v1.0/precipitation<br/>"
@@ -39,7 +36,7 @@ def home():
             f"/api/v1.0/tobs<br/>"
             f"/api/v1.0/start<br/>"
             f"/api/v1.0/start/end<br/>")
-
+    
 
 # Convert the query results to a dictionary using "date" as the key and "prcp" as the value.
 # Return the JSON representation of your dictionary. 
@@ -47,11 +44,13 @@ def home():
 def precipitation():
 
     # Create session
-    session = Session(engine)
+    sql_driver_session = Session(engine)
 
     # Query for precipitation
-    all_precipitation = session.query(Measurement.date, Measurement.prcp).\
-                                      order_by(Measurement.date).all()
+    all_precipitation = sql_driver_session.query(Measurement.date, Measurement.prcp).\
+                                                 order_by(Measurement.date).all()
+
+    sql_driver_session.close()
 
     # Convert the query results to a dictionary
     precipitation_list = []
@@ -64,18 +63,20 @@ def precipitation():
     # Return the JSON representation of dictionary
     return jsonify(precipitation_list)
 
-
+    
 # Return a JSON list of stations from the dataset
 @app.route("/api/v1.0/stations")
 def stations():
 
     # Create session
-    session = Session(engine)
+    sql_driver_session = Session(engine)
 
     # Query for stations
-    all_stations = session.query(Station.station, Station.name,\
-                                 Station.latitude, Station.longitude,\
-                                 Station.elevation).all()
+    all_stations = sql_driver_session.query(Station.station, Station.name,\
+                                            Station.latitude, Station.longitude,\
+                                            Station.elevation).all()
+    
+    sql_driver_session.close()
 
     # Convert the query results to a dictionary
     stations_list = []
@@ -90,7 +91,7 @@ def stations():
 
     # Return the JSON representation of dictionary
     return jsonify(stations_list)
-
+    
 
 # Query the dates and temperature observations of *the most active station for the last year* of data.
 # Return a JSON list of temperature observations (TOBS) for the previous year.
@@ -98,10 +99,10 @@ def stations():
 def tobs():
 
     # Create session
-    session = Session(engine)
+    sql_driver_session = Session(engine)
 
     # Find the last date in the data set
-    last_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    last_date = driver_session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
     # Calculate the date 1 year ago from the last data point in the database
     formatted_last_date = dt.datetime.strptime(last_date[0], "%Y-%m-%d")
@@ -110,16 +111,18 @@ def tobs():
                            formatted_last_date.day)
 
     # Find the most active station
-    the_most_active_station = session.query(Measurement.station, Station.name,\
-                                            func.count(Measurement.id)).\
-                                            filter(Measurement.station == Station.station).\
-                                            group_by(Measurement.station).\
-                                            order_by(func.count(Measurement.id).desc()).first()
+    the_most_active_station = sql_driver_session.query(Measurement.station, Station.name,\
+                                                       func.count(Measurement.id)).\
+                                                       filter(Measurement.station == Station.station).\
+                                                       group_by(Measurement.station).\
+                                                       order_by(func.count(Measurement.id).desc()).first()
 
     # Query for temperature scores for the most active station from the last year
-    twelve_months_data = session.query(Measurement.date, Measurement.tobs).\
-                                       filter(Measurement.station == the_most_active_station[0]).\
-                                       filter(Measurement.date >= one_year_ago).all()
+    twelve_months_data = sql_driver_session.query(Measurement.date, Measurement.tobs).\
+                                                  filter(Measurement.station == the_most_active_station[0]).\
+                                                  filter(Measurement.date >= one_year_ago).all()
+    
+    sql_driver_session.close()
 
     # Convert the query results to a dictionary
     tobs_list = []
@@ -142,14 +145,16 @@ def tobs():
 def temp_start(start):
 
     # Create session
-    session = Session(engine)
+    sql_driver_session = Session(engine)
 
     # Query for temperature score with only start date
-    all_temperature = session.query(func.min(Measurement.tobs),\
-                                    func.avg(Measurement.tobs),\
-                                    func.max(Measurement.tobs)).\
-                                    filter(Measurement.date >= start).all()
+    all_temperature = sql_driver_session.query(func.min(Measurement.tobs),\
+                                               func.avg(Measurement.tobs),\
+                                               func.max(Measurement.tobs)).\
+                                               filter(Measurement.date >= start).all()
     
+    sql_driver_session.close()
+
     # Convert the query results to a dictionary
     temp_list = []
     for min, avg, max in all_temperature:
@@ -168,15 +173,17 @@ def temp_start(start):
 def temp_start_end(start = None, end = None):
     
     # Create session
-    session = Session(engine)
+    sql_driver_session = Session(engine)
     
     # Query for temperature score with start date and end date
-    all_temperature = session.query(func.min(Measurement.tobs),\
-                                    func.avg(Measurement.tobs),\
-                                    func.max(Measurement.tobs)).\
-                                    filter(Measurement.date >= start).\
-                                    filter(Measurement.date <= end).all()
+    all_temperature = sql_driver_session.query(func.min(Measurement.tobs),\
+                                               func.avg(Measurement.tobs),\
+                                               func.max(Measurement.tobs)).\
+                                               filter(Measurement.date >= start).\
+                                               filter(Measurement.date <= end).all()
     
+    sql_driver_session.close()
+
     # Convert the query results to a dictionary
     temp_list = []
     for min, avg, max in all_temperature:
