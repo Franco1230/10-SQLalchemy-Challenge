@@ -104,7 +104,7 @@ def tobs():
     sql_driver_session = Session(engine)
 
     # Find the last date in the data set
-    last_date = driver_session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    last_date = sql_driver_session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
     # Calculate the date 1 year ago from the last data point in the database
     formatted_last_date = dt.datetime.strptime(last_date[0], "%Y-%m-%d")
